@@ -238,7 +238,12 @@
           body: JSON.stringify(payload)
         });
 
-        const result = await response.json().catch(() => ({}));
+        let result = {};
+        try {
+          result = await response.json();
+        } catch (jsonErr) {
+          result = { error: `Server error (${response.status}: ${response.statusText || 'Internal error'})` };
+        }
 
         if (response.ok && result.success !== false) {
           showBanner('success', '✨ Message sent successfully! Soham has been notified on Telegram.');
@@ -248,7 +253,7 @@
           // Custom event
           trackEvent('contact_submit', { status: 'success' });
         } else {
-          const errMsg = result.error || 'Failed to deliver message. Please reach out via email.';
+          const errMsg = result.error || result.details || 'Failed to deliver message. Check Telegram Bot settings.';
           showBanner('error', `Error: ${errMsg}`);
           trackEvent('contact_submit', { status: 'failed', error: errMsg });
         }

@@ -1,35 +1,37 @@
 /**
  * VERCEL SERVERLESS FUNCTION: /api/contact
- * Works automatically when hosted on Vercel!
- *
- * Add these 2 Environment Variables in your Vercel Project Settings:
- * 1. TELEGRAM_BOT_TOKEN
- * 2. TELEGRAM_CHAT_ID
+ * CommonJS format ensures 100% compatibility across all Node runtimes on Vercel.
  */
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // CORS Headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  // Handle preflight
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed (Expected POST)' });
   }
 
-  const { name, email, message, timestamp, referrer } = req.body || {};
+  // Parse Body safely
+  let body = req.body;
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid JSON body' });
+    }
+  }
+
+  const { name, email, message, timestamp, referrer } = body || {};
 
   if (!name || !email || !message) {
-    return res.status(400).json({ error: 'Name, email, and message are required.' });
+    return res.status(400).json({ error: 'Please fill in Name, Email, and Message.' });
   }
 
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -37,17 +39,19 @@ export default async function handler(req, res) {
 
   if (!botToken || !chatId) {
     return res.status(500).json({
-      error: 'TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID environment variables are missing.'
+      error: 'Environment variables missing: Please ensure TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are set in Vercel Settings.'
     });
   }
 
-  const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Unknown IP';
+  const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
+                   req.socket?.remoteAddress || 
+                   'Unknown IP';
   const timeFormatted = timestamp ? new Date(timestamp).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }) + ' IST' : new Date().toLocaleString();
 
   const escapeHtml = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   const telegramMessage = `
-🚀 <b>New Portfolio Message Received!</b>
+🚀 <b>New Portfolio Message!</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <b>From:</b> ${escapeHtml(name)}
 ✉️ <b>Email:</b> <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>
@@ -75,12 +79,16 @@ ${escapeHtml(message)}
     const result = await response.json();
 
     if (!result.ok) {
-      return res.status(502).json({ error: 'Telegram delivery failed', details: result.description });
+      console.error('Telegram API rejected message:', result);
+      return res.status(502).json({
+        error: `Telegram Error: ${result.description} (Code ${result.error_code})`
+      });
     }
 
-    return res.status(200).json({ success: true, message: 'Delivered to Telegram!' });
+    return res.status(200).json({ success: true, message: 'Message sent to Telegram!' });
+
   } catch (err) {
-    console.error('Telegram dispatch error:', err);
-    return res.status(500).json({ error: 'Failed to dispatch message to Telegram.' });
+    console.error('Fetch execution error:', err);
+    return res.status(500).json({ error: `Server dispatch failed: ${err.message}` });
   }
-}
+};
