@@ -163,7 +163,7 @@ const portfolioConfig = {
 
   // Analytics & Tracking Placeholders
   analytics: {
-    ga4MeasurementId: "G-XXXXXXXXXX", // Replace with your GA4 Measurement ID
+    ga4MeasurementId: "G-LX2G2V04GP", // Replace with your GA4 Measurement ID
     cloudflareToken: "YOUR_CLOUDFLARE_BEACON_TOKEN" // Optional Cloudflare Web Analytics Token
   }
 };
