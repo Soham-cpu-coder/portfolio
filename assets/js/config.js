@@ -153,10 +153,11 @@ const portfolioConfig = {
     }
   ],
 
-  // Contact & Telegram Lambda Integration
-  // Put your AWS Lambda Function URL or Vercel serverless API endpoint here:
+  // Contact & Telegram Integration
+  // Option A (Vercel Native): use "/api/contact" (add TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in Vercel settings)
+  // Option B (AWS Lambda): paste your AWS Function URL (e.g. "https://xxxxxx.lambda-url.us-east-1.on.aws/")
   contactApi: {
-    lambdaFunctionUrl: "YOUR_LAMBDA_FUNCTION_URL_HERE", // e.g., https://xxxxxxxxxxxx.lambda-url.us-east-1.on.aws/
+    lambdaFunctionUrl: "/api/contact", 
     cooldownSeconds: 30
   },
 
