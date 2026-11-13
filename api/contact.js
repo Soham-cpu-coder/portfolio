@@ -1,6 +1,6 @@
 /**
  * VERCEL SERVERLESS FUNCTION: /api/contact
- * CommonJS format ensures 100% compatibility across all Node runtimes on Vercel.
+ * Dispatches portfolio inquiries directly to Soham's Telegram!
  */
 
 module.exports = async function handler(req, res) {
@@ -34,14 +34,9 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Please fill in Name, Email, and Message.' });
   }
 
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-
-  if (!botToken || !chatId) {
-    return res.status(500).json({
-      error: 'Environment variables missing: Please ensure TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are set in Vercel Settings.'
-    });
-  }
+  // Telegram credentials (Environment variables with your configured bot fallback)
+  const botToken = process.env.TELEGRAM_BOT_TOKEN || '9268893507:AAHNuOAicRlnXuJTuKKV97mJ7CCR-lBRyEA';
+  const chatId = process.env.TELEGRAM_CHAT_ID || '1994600280';
 
   const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
                    req.socket?.remoteAddress || 
@@ -79,7 +74,7 @@ ${escapeHtml(message)}
     const result = await response.json();
 
     if (!result.ok) {
-      console.error('Telegram API rejected message:', result);
+      console.error('Telegram API rejected:', result);
       return res.status(502).json({
         error: `Telegram Error: ${result.description} (Code ${result.error_code})`
       });

@@ -39,9 +39,9 @@ exports.handler = async (event) => {
     };
   }
 
-  // 2. Read environment variables
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  // 2. Read environment variables (with your configured defaults)
+  const botToken = process.env.TELEGRAM_BOT_TOKEN || '9268893507:AAHNuOAicRlnXuJTuKKV97mJ7CCR-lBRyEA';
+  const chatId = process.env.TELEGRAM_CHAT_ID || '1994600280';
 
   if (!botToken || !chatId) {
     console.error('Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID in environment variables.');
